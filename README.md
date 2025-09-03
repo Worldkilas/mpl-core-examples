@@ -129,6 +129,7 @@ anchor deploy
 
 # run tests
 anchor test
+```
 
 ---
 
