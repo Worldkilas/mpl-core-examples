@@ -180,6 +180,18 @@ pub fn create_nft(&mut self, create_nft_args: CreateNFTArgs) -> Result<()> {
 use anchor_lang::prelude::*;
 use mpl_core::instructions::AddPluginV1;
 
+#[derive(AnchorSerialize, AnchorDeserialize)]
+pub struct CreatorArgs {
+    pub address: Pubkey,
+    pub percentage: u8,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize)]
+pub struct AddRoyaltiesPluginArgs {
+    pub basis_points: u16,
+    pub creators: Vec<CreatorArgs>,
+}
+
 pub fn add_royalties_plugin(&mut self, args: AddRoyaltiesPluginArgs) -> Result<()> {
         // Map the incoming creators into the expected `Creator` format.
         let creators = args
