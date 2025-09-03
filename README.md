@@ -138,7 +138,7 @@ anchor test
 ### Creating a Collection
 ```rust
 use anchor_lang::prelude::*;
-use mpl_core::instructions::CreateCollectionV1;
+use mpl_core::instructions::CreateCollectionV1CpiBuilder;
 
  /// Creates a basic collection with a name and URI.
     pub fn create_collection(&mut self, args: CreateCollectionArgs) -> Result<()> {
@@ -178,7 +178,7 @@ pub fn create_nft(&mut self, create_nft_args: CreateNFTArgs) -> Result<()> {
 ### Adding a Royalties Plugin
 ```rust
 use anchor_lang::prelude::*;
-use mpl_core::instructions::AddPluginV1;
+use mpl_core::instructions::AddPluginV1CpiBuilder;
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct CreatorArgs {
