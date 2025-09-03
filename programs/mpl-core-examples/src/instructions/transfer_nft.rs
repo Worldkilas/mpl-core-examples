@@ -1,5 +1,7 @@
 use anchor_lang::prelude::*;
-use mpl_core::{accounts::BaseAssetV1, instructions::TransferV1CpiBuilder};
+use mpl_core::instructions::TransferV1CpiBuilder;
+
+use crate::SPL_NOOP_PROGRAM;
 
 #[derive(Accounts)]
 pub struct TransferNFT<'info> {
@@ -7,6 +9,7 @@ pub struct TransferNFT<'info> {
     pub payer: Signer<'info>,
 
     /// CHECK: the mpl core program validates it so it is safe
+    #[account(mut)]
     pub asset: AccountInfo<'info>,
 
     /// The collection to which the NFT might belong to
@@ -24,6 +27,7 @@ pub struct TransferNFT<'info> {
 
     /// The SPL Noop program.
     /// CHECK: Checked in mpl-core.
+    #[account(address=SPL_NOOP_PROGRAM)]
     pub log_wrapper: Option<AccountInfo<'info>>,
 
     pub system_program: Program<'info, System>,
@@ -42,6 +46,7 @@ impl<'info> TransferNFT<'info> {
             .new_owner(self.new_owner.to_account_info().as_ref())
             .system_program(Some(self.system_program.as_ref()))
             .authority(self.authority.as_deref())
+            .log_wrapper(self.log_wrapper.as_ref())
             .invoke()?;
         Ok(())
     }

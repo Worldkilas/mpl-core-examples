@@ -1,13 +1,14 @@
 use anchor_lang::prelude::*;
 use mpl_core::{
-    instructions::AddPluginV1CpiBuilder,
+    instructions::{AddExternalPluginAdapterV1CpiBuilder, AddPluginV1CpiBuilder},
     types::{
-        Autograph, AutographSignature, BurnDelegate, Creator, FreezeDelegate, Plugin, Royalties,
-        TransferDelegate,
+        Autograph, AutographSignature, BurnDelegate, Creator, ExternalCheckResult,
+        ExternalPluginAdapterInitInfo, FreezeDelegate, HookableLifecycleEvent, OracleInitInfo,
+        Plugin, Royalties, TransferDelegate,
     },
 };
 
-use crate::MPL_CORE_ID;
+use crate::{MPL_CORE_ID, ONCHAIN_METAPLEX_ORACLE_PLUGIN, SPL_NOOP_PROGRAM};
 
 #[derive(Accounts)]
 pub struct AddPluginsToNft<'info> {
@@ -35,6 +36,7 @@ pub struct AddPluginsToNft<'info> {
 
     /// The SPL Noop program.
     /// CHECK: Checked in mpl-core.
+    #[account(address=SPL_NOOP_PROGRAM)]
     pub log_wrapper: Option<AccountInfo<'info>>,
 
     /// The MPL Core program.
@@ -55,12 +57,12 @@ pub struct AddRoyaltiesPluginArgs {
     pub creators: Vec<CreatorArgs>,
 }
 
-
+#[derive(AnchorSerialize, AnchorDeserialize)]
+pub struct AddAutographPluginArgs {
+    pub message: String,
+}
 
 impl<'info> AddPluginsToNft<'info> {
-    pub fn add_plugins() {
-        
-    }
     /// Adds a royalties plugin to an asset or collection.
     ///
     /// This function configures royalty distribution for an asset or collection by attaching  
@@ -105,7 +107,7 @@ impl<'info> AddPluginsToNft<'info> {
     /// Adds an "Autograph" plugin to the asset.
     /// This plugin allows recording of digital signatures/messages
     /// from authorities (e.g. creator autographing their NFT).
-    pub fn add_autograph_plugin_to_asset(&mut self) -> Result<()> {
+    pub fn add_autograph_plugin_to_asset(&mut self, args: AddAutographPluginArgs) -> Result<()> {
         AddPluginV1CpiBuilder::new(&self.mpl_core)
             .asset(self.asset.as_ref())
             .collection(self.collection.as_ref())
@@ -114,7 +116,7 @@ impl<'info> AddPluginsToNft<'info> {
             .authority(self.authority.as_deref())
             .plugin(Plugin::Autograph(Autograph {
                 signatures: vec![AutographSignature {
-                    message: "Example messages".to_string(),
+                    message: args.message,
                     address: self
                         .authority
                         .as_ref()
@@ -208,6 +210,27 @@ impl<'info> AddPluginsToNft<'info> {
             .system_program(self.system_program.to_account_info().as_ref())
             .authority(self.authority.as_deref())
             .plugin(Plugin::BurnDelegate(BurnDelegate {}))
+            .invoke()?;
+        Ok(())
+    }
+
+    pub fn add_metaplex_oracle_to_nft(&mut self) -> Result<()> {
+        AddExternalPluginAdapterV1CpiBuilder::new(&self.mpl_core)
+            .asset(self.asset.as_ref())
+            .collection(self.collection.as_ref())
+            .payer(self.payer.to_account_info().as_ref())
+            .system_program(self.system_program.to_account_info().as_ref())
+            .authority(self.authority.as_deref())
+            .init_info(ExternalPluginAdapterInitInfo::Oracle(OracleInitInfo {
+                base_address: ONCHAIN_METAPLEX_ORACLE_PLUGIN,
+                init_plugin_authority: None,
+                lifecycle_checks: vec![(
+                    HookableLifecycleEvent::Transfer,
+                    ExternalCheckResult { flags: 4 },
+                )],
+                base_address_config: None,
+                results_offset: Some(mpl_core::types::ValidationResultsOffset::Anchor),
+            }))
             .invoke()?;
         Ok(())
     }

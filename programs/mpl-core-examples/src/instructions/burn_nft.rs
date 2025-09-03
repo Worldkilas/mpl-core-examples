@@ -16,6 +16,7 @@ pub struct BurnNFT<'info> {
     #[account(mut)]
     pub collection: Option<AccountInfo<'info>>,
 
+    /// The authority who controls the asset
     pub authority: Option<Signer<'info>>,
 
     pub system_program: Program<'info, System>,

@@ -5,7 +5,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-mpl_core_examples = "6Ed2X36Cs6KkAGKKJgf2ZHusnuiGhsWDitaxgpTSbec9"
+mpl_core_examples = "5s9UNbsAjeJPfoSBdDNUZuGn89orurbmfDVJXuY4sW7d"
 
 [registry]
 url = "https://api.apr.dev"
@@ -18,7 +18,7 @@ wallet = "~/.config/solana/id.json"
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
 
 [test]
-startup_wait = 5000
+startup_wait = 6000
 shutdown_wait = 2000
 upgradeable = false
 

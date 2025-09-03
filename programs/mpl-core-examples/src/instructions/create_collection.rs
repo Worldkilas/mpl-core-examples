@@ -10,43 +10,56 @@ use mpl_core::{
 
 use crate::{MPL_CORE_ID, ONCHAIN_METAPLEX_ORACLE_PLUGIN};
 
+/// Accounts required for creating a new collection or a collection with plugins.
 #[derive(Accounts)]
 pub struct CreateCollection<'info> {
-    /// Account paying for rent and creation of the collection
+    /// Account paying for rent and transaction fees.
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    /// The address of the new collection.
+    /// The new collection account to be created.
     #[account(mut)]
     pub collection: Signer<'info>,
 
-    /// CHECK: Checked in mpl core
+    /// Optional update authority for the collection.
+    /// CHECK: Validated by the MPL Core program.
     pub update_authority: Option<AccountInfo<'info>>,
 
-    /// The system program
+    /// Solana System Program (for account creation).
     pub system_program: Program<'info, System>,
 
-    /// The MPL core program
-    /// CHECK: It is checked in the address constraint
+    /// Metaplex Core program (CPI target).
+    /// CHECK: Address constraint ensures correctness.
     #[account(address = MPL_CORE_ID)]
     pub mpl_core_program: AccountInfo<'info>,
 }
 
+/// Arguments for creating a standard collection.
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct CreateCollectionArgs {
+    /// Human-readable name of the collection.
     pub name: String,
+    /// Metadata URI describing the collection.
     pub uri: String,
 }
+
+/// Arguments for creating a master edition collection.
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct CreateMasterEditionArgs {
+    /// Name of the master edition collection.
     pub name_of_master_edition_collection: String,
+    /// Metadata URI of the master edition collection.
     pub uri_of_master_edition_collection: String,
+    /// Optional name for the Master Edition plugin.
     pub master_edition_name: Option<String>,
+    /// Optional URI for the Master Edition plugin.
     pub master_edition_uri: Option<String>,
+    /// Maximum number of editions allowed.
     pub max_supply: u32,
 }
 
 impl<'info> CreateCollection<'info> {
+    /// Creates a basic collection with a name and URI.
     pub fn create_collection(&mut self, args: CreateCollectionArgs) -> Result<()> {
         CreateCollectionV1CpiBuilder::new(&self.mpl_core_program)
             .collection(self.collection.to_account_info().as_ref())
@@ -59,6 +72,7 @@ impl<'info> CreateCollection<'info> {
         Ok(())
     }
 
+    /// Creates a master edition collection with a `MasterEdition` plugin.
     pub fn create_master_edition(&mut self, args: CreateMasterEditionArgs) -> Result<()> {
         CreateCollectionV1CpiBuilder::new(&self.mpl_core_program)
             .collection(self.collection.to_account_info().as_ref())
@@ -79,6 +93,7 @@ impl<'info> CreateCollection<'info> {
         Ok(())
     }
 
+    /// Creates a collection with a permanent transfer delegate plugin.
     pub fn create_collection_with_permanent_transfer_delegate(
         &mut self,
         args: CreateCollectionArgs,
@@ -98,6 +113,8 @@ impl<'info> CreateCollection<'info> {
         Ok(())
     }
 
+    /// Creates a collection with a permanent freeze delegate plugin.
+    /// By default, the collection is initialized in a frozen state (`frozen = true`).
     pub fn create_collection_with_permanent_freeze_delegate(
         &mut self,
         args: CreateCollectionArgs,
@@ -117,6 +134,7 @@ impl<'info> CreateCollection<'info> {
         Ok(())
     }
 
+    /// Creates a collection with a permanent burn delegate plugin.
     pub fn create_collection_with_permanent_burn_delegate(
         &mut self,
         args: CreateCollectionArgs,
@@ -136,6 +154,8 @@ impl<'info> CreateCollection<'info> {
         Ok(())
     }
 
+    /// Creates a collection with an external oracle plugin.
+    /// This plugin allows external validation checks (e.g., transfer rules).
     pub fn create_collection_with_oracle_plugin(
         &mut self,
         args: CreateCollectionArgs,

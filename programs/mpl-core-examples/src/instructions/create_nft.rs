@@ -49,6 +49,11 @@ pub struct CreateNFTArgs {
 }
 
 impl<'info> CreateNFT<'info> {
+    /// For a standalone NFT, the collection should set to None(null in js)
+    /// For an NFT as part of a collection, the collection should be passed but the
+    /// update authority should be None (or null in js) otherwise the CPI will fail
+    /// This is because the update authority of the collection is automatically set as the
+    /// update authority of the NFT when creating an NFT as part of a collection
     pub fn create_nft(&mut self, create_nft_args: CreateNFTArgs) -> Result<()> {
         CreateV1CpiBuilder::new(&self.mpl_core_program)
             .asset(self.asset.to_account_info().as_ref())
@@ -60,33 +65,6 @@ impl<'info> CreateNFT<'info> {
             .system_program(self.system_program.to_account_info().as_ref())
             .name(create_nft_args.name)
             .uri(create_nft_args.uri)
-            .invoke()?;
-        Ok(())
-    }
-
-    pub fn create_nft_with_oracle_plugin(&mut self, args: CreateNFTArgs) -> Result<()> {
-        CreateV2CpiBuilder::new(&self.mpl_core_program)
-            .payer(self.payer.to_account_info().as_ref())
-            .asset(self.asset.to_account_info().as_ref())
-            .name(args.name)
-            .uri(args.uri)
-            .authority(self.authority.as_deref())
-            .owner(self.owner.as_ref())
-            .update_authority(self.update_authority.as_ref())
-            .system_program(self.system_program.to_account_info().as_ref())
-            .collection(self.collection.as_ref())
-            .external_plugin_adapters(vec![ExternalPluginAdapterInitInfo::Oracle(
-                OracleInitInfo {
-                    base_address: ONCHAIN_METAPLEX_ORACLE_PLUGIN,
-                    init_plugin_authority: None,
-                    lifecycle_checks: vec![(
-                        HookableLifecycleEvent::Transfer,
-                        ExternalCheckResult { flags: 4 },
-                    )],
-                    base_address_config: None,
-                    results_offset: Some(mpl_core::types::ValidationResultsOffset::Anchor),
-                },
-            )])
             .invoke()?;
         Ok(())
     }

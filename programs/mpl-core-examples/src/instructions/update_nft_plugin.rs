@@ -1,9 +1,9 @@
 use anchor_lang::prelude::*;
 use mpl_core::{
     fetch_asset_plugin,
-    instructions::{UpdatePluginV1CpiBuilder, UpdateV1CpiBuilder},
+    instructions::UpdatePluginV1CpiBuilder,
     types::{
-        Autograph, AutographSignature, Creator, FreezeDelegate, Plugin, PluginType, Royalties,
+        AutographSignature, Creator, FreezeDelegate, Plugin, PluginType, Royalties,
     },
 };
 
@@ -50,6 +50,11 @@ pub struct UpdateNFTPlugin<'info> {
 pub struct UpdateRoyaltiesPluginArgs {
     pub basis_points: u16,
     pub creators: Vec<CreatorArgs>,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize)]
+pub struct UpdateAutographPluginArgs {
+    pub message:String
 }
 
 impl<'info> UpdateNFTPlugin<'info> {
@@ -108,7 +113,7 @@ impl<'info> UpdateNFTPlugin<'info> {
     /// since it maintains the full list of data.
     ///
     /// See example below
-    pub fn add_new_autograph_to_asset_with_existing_autograph_plugin(&mut self) -> Result<()> {
+    pub fn add_new_autograph_to_asset_with_existing_autograph_plugin(&mut self, args: UpdateAutographPluginArgs) -> Result<()> {
         // Fetch the existing autograph plugin data
         let (_, mut existing_autograph_plugin, __) = fetch_asset_plugin::<
             mpl_core::types::Autograph,
@@ -121,7 +126,7 @@ impl<'info> UpdateNFTPlugin<'info> {
                 .signatures
                 .push(AutographSignature {
                     address: self.payer.key(),
-                    message: "New Autograph for this amazing NFT".to_string(),
+                    message: args.message,
                 });
             existing_autograph_plugin
         };

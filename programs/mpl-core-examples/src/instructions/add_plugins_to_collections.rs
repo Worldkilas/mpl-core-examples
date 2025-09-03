@@ -5,7 +5,7 @@ use mpl_core::{
     },
     types::{
         BubblegumV2, Creator, ExternalCheckResult, ExternalPluginAdapterInitInfo,
-        HookableLifecycleEvent, Oracle, OracleInitInfo, Royalties,
+        HookableLifecycleEvent, OracleInitInfo, Royalties,
     },
 };
 
